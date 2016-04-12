@@ -84,18 +84,12 @@ bool BTree::rlookup(string key, BTreeFile::BlockNumber root, string& value) cons
     cout << endl;
 
     cout << "Position " << block.getPosition(key) << endl;
-
     cout << "number of keys" << block.getNumberOfKeys() << endl;
-
     cout << "Get child 1 " << block.getChild(0) << endl;
-
     cout << "Get child 2 " << block.getChild(1) << endl;
-
     cout << "block number" << root << endl;
-
     cout << "key " << key << endl;
   }
-
 
   if (key == currentKey)
   {
