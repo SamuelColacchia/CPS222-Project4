@@ -39,6 +39,7 @@ void BTree::insert(string key, string value)
   {
     BTreeFile::BlockNumber root = _file.getRoot();
 
+ 
     BTreeBlock currentBlock;
 
     _file.getBlock(root, currentBlock);
