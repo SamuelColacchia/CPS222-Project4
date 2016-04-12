@@ -11,9 +11,10 @@
  * Copyright (c) 2001, 2002, 2003 - Russell C. Bjork
  * Trivial changes 2016 - Russ Tuck
  */
-
+#include <stack>
 #include <iostream>
 using std::cout;
+using std::stack;
 
 #include "BTree.h"
 #include "BTreeFile.h"
@@ -29,12 +30,119 @@ BTree::BTree(string name)
 }
 
 
-#ifndef PROFESSOR_VERSION
 
+#ifndef PROFESSOR_VERSION
+//TODO | change currentBlockNum variable
 void BTree::insert(string key, string value)
 {
-  // Student code goes here - remove this line
+
+
+
+  stack<BTreeFile::BlockNumber> blockNumberStack;
+
+  BTreeFile::BlockNumber root = _file.getRoot();
+
+
+
+
+
+
+  //
+  // if (value.length() == 0)
+  // {
+  //   cout << "/* search fails */" << endl;
+  // }
+  // else
+  // {
+  //   BTreeFile::BlockNumber root = _file.getRoot();
+  //   BTreeFile::BlockNumber currentBlockNum;
+  //
+  //   BTreeBlock currentBlock;
+  //
+  //   _file.getBlock(root, currentBlock);
+  //
+  //   blockNumberStack.push(root);
+  //   while (!currentBlock.isLeaf())
+  //   {
+  //     currentBlockNum = currentBlock.getChild(currentBlock.getPosition(key));
+  //     blockNumberStack.push(currentBlockNum);
+  //     _file.getBlock(currentBlockNum, currentBlock);
+  //   }
+  //
+  //   currentBlock.insert(currentBlock.getPosition(key), key, value, currentBlock.getChild(currentBlock.getPosition(key)));
+  //
+  //   if (currentBlock.splitNeeded() == false)
+  //   {
+  //     _file.putBlock(currentBlockNum, currentBlock);
+  //   }
+  //   else
+  //   {
+  //
+  //     cout << "currentBlock before split check " << currentBlock.splitNeeded() << endl;
+  //     cout << "currentBlock before split number " << currentBlockNum << endl;
+  //
+  //     while (currentBlock.splitNeeded())
+  //     {
+  //       BTreeBlock newBlock;
+  //       BTreeFile::BlockNumber newBlockNum;
+  //
+  //       unsigned midIndex = (currentBlock.getNumberOfKeys() - 1) / 2;
+  //       string midKey = currentBlock.getKey(midIndex);
+  //       string midValue = currentBlock.getValue(midIndex);
+  //
+  //       currentBlock.split(midKey, midValue, newBlock);
+  //
+  //       _file.putBlock(currentBlockNum, currentBlock);
+  //       newBlockNum = _file.allocateBlock();
+  //       _file.putBlock(newBlockNum, newBlock);
+  //
+  //       blockNumberStack.top() = currentBlockNum;
+  //
+  //       cout << "Stack top block number " << currentBlockNum << endl;
+  //
+  //
+  //       _file.getBlock(currentBlockNum, currentBlock);
+  //
+  //       currentBlock.insert(currentBlock.getPosition(midKey), midKey, midValue, currentBlock.getChild(currentBlock.getPosition(key)));
+  //
+  //       blockNumberStack.pop();
+  //
+  //       if (currentBlock.splitNeeded() == false)
+  //       {
+  //         _file.putBlock(currentBlockNum, currentBlock);
+  //       }
+  //     }
+  //
+  //   }
+  // }
 }
+
+
+// void BTree::insertR(string key, string value, BTreeBlock currentBlock, BTreeFile::BlockNumber currentBlockNumber)
+// {
+//   // BTreeFile::BlockNumber root = _file.getRoot();
+//   // int currentBlock = editedBlock;
+//   //
+//   // while (currentBlock != getChild(root))
+//   // {
+//   //   int currentBlock = getChild(root);
+//   // }
+//   // BTreeBlock.insert(getPosition(key), key, value, BTreeFile.getChild(currentBlock))
+//   // if (splitNeeded(currentBlock) == false)
+//   // {
+//   //   putBlock(currentBlock);
+//   // }
+//   // else
+//   // {
+//   //   BTreeBlock();
+//   //   split();
+//   //   putBlock();
+//   //   allocateBlock();
+//   //   putBlock();
+//   //   insertR(key, value, currentBlock);
+//   // }
+// }
+
 
 //TODO Add comments
 bool BTree::lookup(string key, string& value) const
@@ -86,7 +194,7 @@ bool BTree::rlookup(string key, BTreeFile::BlockNumber root, string& value) cons
     cout << "Position " << block.getPosition(key) << endl;
     cout << "number of keys" << block.getNumberOfKeys() << endl;
     cout << "index " << index << endl;
-    
+
     cout << "Get child 1 " << block.getChild(0) << endl;
     cout << "Get child 2 " << block.getChild(1) << endl;
     cout << "block number" << root << endl;
@@ -119,7 +227,6 @@ bool BTree::rlookup(string key, BTreeFile::BlockNumber root, string& value) cons
     return false;
   }
 }
-
 
 bool BTree::remove(string key)
 {
