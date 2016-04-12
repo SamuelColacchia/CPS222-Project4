@@ -11,9 +11,10 @@
  * Copyright (c) 2001, 2002, 2003 - Russell C. Bjork
  * Trivial changes 2016 - Russ Tuck
  */
-
+#include <stack>
 #include <iostream>
 using std::cout;
+using std::stack;
 
 #include "BTree.h"
 #include "BTreeFile.h"
@@ -29,12 +30,12 @@ BTree::BTree(string name)
 //TODO | change child variable
 void BTree::insert(string key, string value)
 {
+  stack <BTreeFile::BlockNumber> blockNumberStack;
+
   if (value.length() == 0)
   {
     cout << "/* search fails */" << endl;
   }
-
-
   else
   {
     BTreeFile::BlockNumber root = _file.getRoot();
@@ -43,10 +44,11 @@ void BTree::insert(string key, string value)
     BTreeBlock currentBlock;
 
     _file.getBlock(root, currentBlock);
-
+    blockNumberStack.push(root);
     while (!currentBlock.isLeaf())
     {
       child = currentBlock.getChild(currentBlock.getPosition(key));
+      blockNumberStack.push(child);
       _file.getBlock(child, currentBlock);
     }
 
