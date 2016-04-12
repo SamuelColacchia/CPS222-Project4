@@ -27,78 +27,113 @@ BTree::BTree(string name)
 
 
 #ifndef PROFESSOR_VERSION
-//TODO | change child variable
+//TODO | change currentBlockNum variable
 void BTree::insert(string key, string value)
 {
-  stack <BTreeFile::BlockNumber> blockNumberStack;
+  stack<BTreeFile::BlockNumber> blockNumberStack;
 
-  if (value.length() == 0)
-  {
-    cout << "/* search fails */" << endl;
-  }
-  else
-  {
-    BTreeFile::BlockNumber root = _file.getRoot();
-    BTreeFile::BlockNumber child;
-
-    BTreeBlock currentBlock;
-
-    _file.getBlock(root, currentBlock);
-    blockNumberStack.push(root);
-    while (!currentBlock.isLeaf())
-    {
-      child = currentBlock.getChild(currentBlock.getPosition(key));
-      blockNumberStack.push(child);
-      _file.getBlock(child, currentBlock);
-    }
-
-    currentBlock.insert(currentBlock.getPosition(key), key, value, child);
-
-    if (currentBlock.splitNeeded() == false)
-    {
-      _file.putBlock(child,currentBlock);
-    }
-    else
-    {
-      BTree::insertR(key, value, currentBlock, child);
-      // BTreeBlock newBlock;
-      // BTreeFile::BlockNumber newBlockNum;
-      // unsigned midIndex = (currentBlock.getNumberOfKeys()-1)/2;
-      // string midKey = currentBlock.getKey(midIndex);
-      // string midValue = currentBlock.getValue(midIndex);
-      // currentBlock.split(midKey,midValue,newBlock);
-      // _file.putBlock(child,currentBlock);
-      // newBlockNum = _file.allocateBlock();
-      // _file.putBlock(newBlockNum,newBlock);
-    }
-  }
-}
+  BTreeFile::BlockNumber root = _file.getRoot();
 
 
-void BTree::insertR(string key, string value, BTreeBlock currentBlock, BTreeFile::BlockNumber currentBlockNumber )
-{
-  // BTreeFile::BlockNumber root = _file.getRoot();
-  // int currentBlock = editedBlock;
+  
+
+
+
   //
-  // while (currentBlock != getChild(root))
+  // if (value.length() == 0)
   // {
-  //   int currentBlock = getChild(root);
-  // }
-  // BTreeBlock.insert(getPosition(key), key, value, BTreeFile.getChild(currentBlock))
-  // if (splitNeeded(currentBlock) == false)
-  // {
-  //   putBlock(currentBlock);
+  //   cout << "/* search fails */" << endl;
   // }
   // else
   // {
-  //   BTreeBlock();
-  //   split();
-  //   putBlock();
-  //   allocateBlock();
-  //   putBlock();
-  //   insertR(key, value, currentBlock);
+  //   BTreeFile::BlockNumber root = _file.getRoot();
+  //   BTreeFile::BlockNumber currentBlockNum;
+  //
+  //   BTreeBlock currentBlock;
+  //
+  //   _file.getBlock(root, currentBlock);
+  //
+  //   blockNumberStack.push(root);
+  //   while (!currentBlock.isLeaf())
+  //   {
+  //     currentBlockNum = currentBlock.getChild(currentBlock.getPosition(key));
+  //     blockNumberStack.push(currentBlockNum);
+  //     _file.getBlock(currentBlockNum, currentBlock);
+  //   }
+  //
+  //   currentBlock.insert(currentBlock.getPosition(key), key, value, currentBlock.getChild(currentBlock.getPosition(key)));
+  //
+  //   if (currentBlock.splitNeeded() == false)
+  //   {
+  //     _file.putBlock(currentBlockNum, currentBlock);
+  //   }
+  //   else
+  //   {
+  //
+  //     cout << "currentBlock before split check " << currentBlock.splitNeeded() << endl;
+  //     cout << "currentBlock before split number " << currentBlockNum << endl;
+  //
+  //     while (currentBlock.splitNeeded())
+  //     {
+  //       BTreeBlock newBlock;
+  //       BTreeFile::BlockNumber newBlockNum;
+  //
+  //       unsigned midIndex = (currentBlock.getNumberOfKeys() - 1) / 2;
+  //       string midKey = currentBlock.getKey(midIndex);
+  //       string midValue = currentBlock.getValue(midIndex);
+  //
+  //       currentBlock.split(midKey, midValue, newBlock);
+  //
+  //       _file.putBlock(currentBlockNum, currentBlock);
+  //       newBlockNum = _file.allocateBlock();
+  //       _file.putBlock(newBlockNum, newBlock);
+  //
+  //       blockNumberStack.top() = currentBlockNum;
+  //
+  //       cout << "Stack top block number " << currentBlockNum << endl;
+  //
+  //
+  //       _file.getBlock(currentBlockNum, currentBlock);
+  //
+  //       currentBlock.insert(currentBlock.getPosition(midKey), midKey, midValue, currentBlock.getChild(currentBlock.getPosition(key)));
+  //
+  //       blockNumberStack.pop();
+  //
+  //       if (currentBlock.splitNeeded() == false)
+  //       {
+  //         _file.putBlock(currentBlockNum, currentBlock);
+  //       }
+  //     }
+  //
+  //   }
   // }
 }
+
+
+// void BTree::insertR(string key, string value, BTreeBlock currentBlock, BTreeFile::BlockNumber currentBlockNumber)
+// {
+//   // BTreeFile::BlockNumber root = _file.getRoot();
+//   // int currentBlock = editedBlock;
+//   //
+//   // while (currentBlock != getChild(root))
+//   // {
+//   //   int currentBlock = getChild(root);
+//   // }
+//   // BTreeBlock.insert(getPosition(key), key, value, BTreeFile.getChild(currentBlock))
+//   // if (splitNeeded(currentBlock) == false)
+//   // {
+//   //   putBlock(currentBlock);
+//   // }
+//   // else
+//   // {
+//   //   BTreeBlock();
+//   //   split();
+//   //   putBlock();
+//   //   allocateBlock();
+//   //   putBlock();
+//   //   insertR(key, value, currentBlock);
+//   // }
+// }
 
 
 bool BTree::lookup(string key, string& value) const
