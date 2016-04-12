@@ -29,7 +29,7 @@ BTree::BTree(string name)
 
 void BTree::insert(string key, string value)
 {
-  if (value == 0)
+  if (value.length() == 0)
   {
     cout << "/* search fails */" << endl;
   }
@@ -39,17 +39,17 @@ void BTree::insert(string key, string value)
   {
     BTreeFile::BlockNumber root = _file.getRoot();
 
- 
+
     BTreeBlock currentBlock;
 
     _file.getBlock(root, currentBlock);
 
-    while (!isLeaf(currentBlock))
+    while (!currentBlock.isLeaf())
     {
-      _file.getBlock(getChild(currentBlock.getPosition(key)), currentBlock);
+      _file.getBlock(currentBlock.getChild(currentBlock.getPosition(key)), currentBlock);
     }
 
-    BTreeBlock::insert(currentBlock.getPosition(key), key, value, currentBlock)
+    BTreeBlock::insert(currentBlock.getPosition(key), key, value, currentBlock);
 
     if (splitNeeded(currentBlock) == false)
     {
@@ -71,27 +71,27 @@ void BTree::insert(string key, string value)
 
 void BTree::insertR(string key, string value, editedBlock)
 {
-  int parent = getRoot();
-  int currentBlock = editedBlock;
-
-  while (currentBlock != getChild(root))
-  {
-    int currentBlock = getChild(root);
-  }
-  BTreeBlock.insert(getPosition(key), key, value, BTreeFile.getChild(currentBlock))
-  if (splitNeeded(currentBlock) == false)
-  {
-    putBlock(currentBlock);
-  }
-  else
-  {
-    BTreeBlock();
-    split();
-    putBlock();
-    allocateBlock();
-    putBlock();
-    insertR(key, value, currentBlock);
-  }
+  // int parent = getRoot();
+  // int currentBlock = editedBlock;
+  //
+  // while (currentBlock != getChild(root))
+  // {
+  //   int currentBlock = getChild(root);
+  // }
+  // BTreeBlock.insert(getPosition(key), key, value, BTreeFile.getChild(currentBlock))
+  // if (splitNeeded(currentBlock) == false)
+  // {
+  //   putBlock(currentBlock);
+  // }
+  // else
+  // {
+  //   BTreeBlock();
+  //   split();
+  //   putBlock();
+  //   allocateBlock();
+  //   putBlock();
+  //   insertR(key, value, currentBlock);
+  // }
 }
 
 
