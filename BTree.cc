@@ -19,6 +19,8 @@ using std::cout;
 #include "BTreeFile.h"
 #include "BTreeBlock.h"
 
+
+//TODO add comments
 bool debug = false;
 
 BTree::BTree(string name)
@@ -34,7 +36,7 @@ void BTree::insert(string key, string value)
   // Student code goes here - remove this line
 }
 
-
+//TODO Add comments
 bool BTree::lookup(string key, string& value) const
 {
   BTreeFile::BlockNumber root = _file.getRoot();
@@ -55,7 +57,7 @@ bool BTree::lookup(string key, string& value) const
   }
 }
 
-
+//TODO add comments
 bool BTree::rlookup(string key, BTreeFile::BlockNumber root, string& value) const
 {
   BTreeBlock block;
