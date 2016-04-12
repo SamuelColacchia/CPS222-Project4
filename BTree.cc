@@ -26,7 +26,7 @@ BTree::BTree(string name)
 
 
 #ifndef PROFESSOR_VERSION
-
+//TODO | change child variable
 void BTree::insert(string key, string value)
 {
   if (value.length() == 0)
@@ -38,7 +38,7 @@ void BTree::insert(string key, string value)
   else
   {
     BTreeFile::BlockNumber root = _file.getRoot();
-
+    BTreeFile::BlockNumber child;
 
     BTreeBlock currentBlock;
 
@@ -46,32 +46,36 @@ void BTree::insert(string key, string value)
 
     while (!currentBlock.isLeaf())
     {
-      _file.getBlock(currentBlock.getChild(currentBlock.getPosition(key)), currentBlock);
+      child = currentBlock.getChild(currentBlock.getPosition(key));
+      _file.getBlock(child, currentBlock);
     }
 
-    BTreeBlock::insert(currentBlock.getPosition(key), key, value, currentBlock);
+    currentBlock.insert(currentBlock.getPosition(key), key, value, child);
 
-    if (splitNeeded(currentBlock) == false)
+    if (currentBlock.splitNeeded() == false)
     {
-      putBlock(currentBlock);
+      _file.putBlock(child,currentBlock);
     }
     else
     {
-      BTreeBlock.BTreeBlock();
-      BTreeBlock.split(string & promotedKey, string & promotedValue,
-                       BTreeBlock & rightHalf);
-      BTreeFile.putBlock();
-      BTreeFile.allocateBlock();
-      BTreeFile.putBlock();
-      insertR(key, value, currentBlock);
+      BTree::insertR(key, value, currentBlock, child);
+      // BTreeBlock newBlock;
+      // BTreeFile::BlockNumber newBlockNum;
+      // unsigned midIndex = (currentBlock.getNumberOfKeys()-1)/2;
+      // string midKey = currentBlock.getKey(midIndex);
+      // string midValue = currentBlock.getValue(midIndex);
+      // currentBlock.split(midKey,midValue,newBlock);
+      // _file.putBlock(child,currentBlock);
+      // newBlockNum = _file.allocateBlock();
+      // _file.putBlock(newBlockNum,newBlock);
     }
   }
 }
 
 
-void BTree::insertR(string key, string value, editedBlock)
+void BTree::insertR(string key, string value, BTreeBlock currentBlock, BTreeFile::BlockNumber currentBlockNumber )
 {
-  // int parent = getRoot();
+  // BTreeFile::BlockNumber root = _file.getRoot();
   // int currentBlock = editedBlock;
   //
   // while (currentBlock != getChild(root))
