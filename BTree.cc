@@ -35,13 +35,33 @@ BTree::BTree(string name)
 //TODO | change currentBlockNum variable
 void BTree::insert(string key, string value)
 {
-
+  if(debug)
+  {
+    cout << endl;
+    cout << endl;
+    cout << "Debug status = " << debug << endl;
+    cout << "Debug insert." << endl;
+  }
 
 
   stack<BTreeFile::BlockNumber> blockNumberStack;
-
   BTreeFile::BlockNumber root = _file.getRoot();
 
+  if (root == 0)
+  {
+    if(debug)
+    {
+      cout << endl;
+      cout << "Root is empty" << endl;
+    }
+    _file.setRoot(root);
+  }
+
+  if(debug)
+  {
+    cout << endl;
+    cout << "root " << root << endl;
+  }
 
 
 
