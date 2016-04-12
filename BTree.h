@@ -34,6 +34,8 @@ class BTree
     // return true, else leave value unchanged and return false
     bool lookup(string key, string & value) const;
 
+    bool rlookup(string key,BTreeFile::BlockNumber blockNumber,string& value) const;
+
     // Remove a key and its associated value.  Return true if
     // found and removed, false if not.
     bool remove(string key);
