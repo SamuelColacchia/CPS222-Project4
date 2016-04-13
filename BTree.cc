@@ -55,6 +55,7 @@ void BTree::insert(string key, string value)
       cout << endl;
       cout << "Root is empty" << endl;
     }
+
     currentBlock = BTreeBlock();
     rootNum = _file.allocateBlock();
     _file.setRoot(rootNum);
@@ -78,69 +79,98 @@ void BTree::insert(string key, string value)
       cout << "root " << rootNum << endl;
     }
 
-    currentBlock = BTreeBlock();
     currentBlockNum = rootNum;
     _file.getBlock(currentBlockNum, currentBlock);
 
-    blockNumberStack.push(rootNum);
     while (!currentBlock.isLeaf())
     {
-      currentBlockNum = currentBlock.getChild(currentBlock.getPosition(key));
       blockNumberStack.push(currentBlockNum);
-      _file.getBlock(currentBlockNum, currentBlock);
+      currentBlockNum = currentBlock.getChild(currentBlock.getPosition(key));
+      _file.getBlock(currentBlock)
     }
 
     currentBlock.insert(currentBlock.getPosition(key), key, value, currentBlock.getChild(currentBlock.getPosition(key)));
+    _file.putBlock(rootNum, currentBlock);
 
-    if (!currentBlock.splitNeeded())
+    while (currentBlock.splitNeeded())
     {
+      BTreeBlock newBlock;
+      BTreeFile::BlockNumber newBlockNum;
 
-      if (debug)
-      {
-        cout << endl;
-        cout << "splitNeeded()|FALSE" << endl;
-      }
+      unsigned midIndex = (currentBlock.getNumberOfKeys() - 1) / 2;
+      string midKey = currentBlock.getKey(midIndex);
+      string midValue = currentBlock.getValue(midIndex);
 
-      _file.putBlock(currentBlockNum, currentBlock);
-    }
-    else
-    {
-      cout << "currentBlock before split check " << currentBlock.splitNeeded() << endl;
-      cout << "currentBlock before split number " << currentBlockNum << endl;
-
-      while (currentBlock.splitNeeded())
-      {
-        BTreeBlock newBlock;
-        BTreeFile::BlockNumber newBlockNum;
-
-        unsigned midIndex = (currentBlock.getNumberOfKeys() - 1) / 2;
-        string midKey = currentBlock.getKey(midIndex);
-        string midValue = currentBlock.getValue(midIndex);
-
-        currentBlock.split(midKey, midValue, newBlock);
-
-        _file.putBlock(currentBlockNum, currentBlock);
-        newBlockNum = _file.allocateBlock();
-        _file.putBlock(newBlockNum, newBlock);
-
-        blockNumberStack.top() = currentBlockNum;
-
-        cout << "Stack top block number " << currentBlockNum << endl;
-
-
-        _file.getBlock(currentBlockNum, currentBlock);
-
-        currentBlock.insert(currentBlock.getPosition(midKey), midKey, midValue, currentBlock.getChild(currentBlock.getPosition(key)));
-
-        blockNumberStack.pop();
-
-        if (currentBlock.splitNeeded() == false)
-        {
-          _file.putBlock(currentBlockNum, currentBlock);
-        }
-      }
+      
     }
   }
+
+//     currentBlock = BTreeBlock();
+//     currentBlockNum = rootNum;
+//     _file.getBlock(currentBlockNum, currentBlock);
+//
+// /*Get to the bottom of the tree*/
+//     blockNumberStack.push(rootNum);
+//     while (!currentBlock.isLeaf())
+//     {
+//       currentBlockNum = currentBlock.getChild(currentBlock.getPosition(key));
+//       blockNumberStack.push(currentBlockNum);
+//       _file.getBlock(currentBlockNum, currentBlock);
+//     }
+//
+//
+//     //Intial insert
+//     currentBlock.insert(currentBlock.getPosition(key), key, value, currentBlock.getChild(currentBlock.getPosition(key)));
+//
+//     if (!currentBlock.splitNeeded())
+//     {
+//
+//       if (debug)
+//       {
+//         cout << endl;
+//         cout << "splitNeeded()|FALSE" << endl;
+//       }
+//
+//       _file.putBlock(currentBlockNum, currentBlock);
+//     }
+//     else
+//     {
+//       cout << "currentBlock before split check " << currentBlock.splitNeeded() << endl;
+//       cout << "currentBlock before split number " << currentBlockNum << endl;
+//
+//       while (currentBlock.splitNeeded())
+//       {
+//         BTreeBlock newBlock;
+//         BTreeFile::BlockNumber newBlockNum;
+//
+//         unsigned midIndex = (currentBlock.getNumberOfKeys() - 1) / 2;
+//         string midKey = currentBlock.getKey(midIndex);
+//         string midValue = currentBlock.getValue(midIndex);
+//
+//         currentBlock.split(midKey, midValue, newBlock);
+//
+//         _file.putBlock(currentBlockNum, currentBlock);
+//         newBlockNum = _file.allocateBlock();
+//         _file.putBlock(newBlockNum, newBlock);
+//
+//         blockNumberStack.top() = currentBlockNum;
+//
+//         cout << "Stack top block number " << currentBlockNum << endl;
+//
+//
+//         _file.getBlock(currentBlockNum, currentBlock);
+//
+//         currentBlock.insert(currentBlock.getPosition(midKey), midKey, midValue, currentBlock.getChild(currentBlock.getPosition(key)));
+//
+//         blockNumberStack.pop();
+//
+//         if (currentBlock.splitNeeded() == false)
+//         {
+//           _file.putBlock(currentBlockNum, currentBlock);
+//         }
+//       }
+//     }
+//   }
 }
 
 
