@@ -47,6 +47,7 @@ void BTree::insert(string key, string value)
   BTreeFile::BlockNumber rootNum = _file.getRoot();
   BTreeFile::BlockNumber currentBlockNum;
   BTreeBlock currentBlock;
+  BTreeFile::BlockNumber childNumNull = 0;
 
   if (rootNum == 0)
   {
@@ -58,17 +59,24 @@ void BTree::insert(string key, string value)
 
     currentBlock = BTreeBlock();
     rootNum = _file.allocateBlock();
-    _file.setRoot(rootNum);
     _file.getBlock(rootNum, currentBlock);
 
     if (debug)
     {
       cout << endl;
+      cout << "RootNum:" << rootNum << endl;
       cout << "Get position of the key: " << currentBlock.getPosition(key) << endl;
       cout << "Header insert child value:" << currentBlock.getChild(currentBlock.getPosition(key)) << endl;
+
+      cout << "###-Values to insert-###" << endl;
+      cout << "insert num:" << currentBlock.getPosition(key) << endl;
+      cout << "key:" << key << endl;
+      cout << "value:" << value << endl;
+      cout << "child num:" << childNumNull;
     }
 
-    currentBlock.insert(currentBlock.getPosition(key), key, value, currentBlock.getChild(currentBlock.getPosition(key)));
+    currentBlock.insert(currentBlock.getPosition(key), key, value, childNumNull);
+    _file.setRoot(rootNum);
     _file.putBlock(rootNum, currentBlock);
   }
   else
@@ -77,6 +85,7 @@ void BTree::insert(string key, string value)
     {
       cout << endl;
       cout << "root " << rootNum << endl;
+      cout << "currentBlock.isLeaf(): " << currentBlock.isLeaf() << endl;
     }
 
     currentBlockNum = rootNum;
@@ -86,10 +95,22 @@ void BTree::insert(string key, string value)
     {
       blockNumberStack.push(currentBlockNum);
       currentBlockNum = currentBlock.getChild(currentBlock.getPosition(key));
-      _file.getBlock(currentBlock)
+      _file.getBlock(currentBlockNum, currentBlock);
     }
 
-    currentBlock.insert(currentBlock.getPosition(key), key, value, currentBlock.getChild(currentBlock.getPosition(key)));
+    if (debug)
+    {
+      cout << endl;
+      cout << "Current value|at the root: " << currentBlockNum;
+      cout << "Current Child value for insert: " << currentBlock.getChild(currentBlock.getPosition(key));
+    }
+
+    if (!currentBlock.isLeaf())
+    {
+      childNumNull = currentBlock.getChild(currentBlock.getPosition(key));
+    }
+
+    currentBlock.insert(currentBlock.getPosition(key), key, value, childNumNull);
     _file.putBlock(rootNum, currentBlock);
 
     while (currentBlock.splitNeeded())
@@ -105,6 +126,17 @@ void BTree::insert(string key, string value)
       _file.putBlock(currentBlockNum, currentBlock);
       newBlockNum = _file.allocateBlock();
       _file.putBlock(newBlockNum, newBlock);
+
+      currentBlockNum = blockNumberStack.top();
+
+      cout << "Stack top block number " << currentBlockNum << endl;
+
+
+      _file.getBlock(currentBlockNum, currentBlock);
+
+      currentBlock.insert(currentBlock.getPosition(midKey), midKey, midValue, currentBlock.getChild(currentBlock.getPosition(key)));
+
+      blockNumberStack.pop();
     }
   }
 
