@@ -55,9 +55,9 @@ void BTree::insert(string key, string value)
     {
       cout << endl;
       cout << "Root is empty" << endl;
+      cout << "CurrentBlock" << currentBlock <<endl;
     }
 
-    currentBlock = BTreeBlock();
     rootNum = _file.allocateBlock();
     _file.getBlock(rootNum, currentBlock);
 
@@ -65,6 +65,7 @@ void BTree::insert(string key, string value)
     {
       cout << endl;
       cout << "RootNum:" << rootNum << endl;
+      cout << "CurrentBlock|after get and allocate" << currentBlock << endl;
       cout << "Get position of the key: " << currentBlock.getPosition(key) << endl;
       cout << "Header insert child value:" << currentBlock.getChild(currentBlock.getPosition(key)) << endl;
 
