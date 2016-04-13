@@ -101,7 +101,10 @@ void BTree::insert(string key, string value)
       string midKey = currentBlock.getKey(midIndex);
       string midValue = currentBlock.getValue(midIndex);
 
-      
+
+      _file.putBlock(currentBlockNum, currentBlock);
+      newBlockNum = _file.allocateBlock();
+      _file.putBlock(newBlockNum, newBlock);
     }
   }
 
