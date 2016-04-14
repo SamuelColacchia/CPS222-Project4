@@ -32,6 +32,26 @@ BTree::BTree(string name)
 
 #ifndef PROFESSOR_VERSION
 
+/**
+ * @param key | the key for the inserted item.
+ * @param value | the value for the inserted item.
+ *
+ * @description | This functions works by checking for a number of cases.
+ *
+ * @case-1 | Tree is empty
+ * @case-1-description | Create a block, insert the item into this block
+ * set this block as a root then store it to disk
+ *
+ * @transition-1 | Get to the leaf
+ * @transition-1-description | Get to the leaf of the tree, by transitioning down
+ * using the key to find the appropriate value
+ *
+ * @case-2 | root only block in tree
+ * @case-2-description |
+ *
+ *
+ *
+ */
 void BTree::insert(string key, string value)
 {
   //Create initial variables
@@ -42,6 +62,7 @@ void BTree::insert(string key, string value)
   BTreeFile::BlockNumber currentBlockNum;
   BTreeBlock currentBlock;
 
+  //@case-1
   if (rootNum == 0)
   {
     rootNum = _file.allocateBlock();
@@ -55,6 +76,8 @@ void BTree::insert(string key, string value)
     currentBlockNum = rootNum;
     _file.getBlock(currentBlockNum, currentBlock);
 
+
+    //@transition-1
     if (currentBlock.isLeaf())
     {
       BTree::insertR(key, value, currentBlock, currentBlockNum, 0, 0);
@@ -77,21 +100,15 @@ void BTree::insertR(string key, string value, BTreeBlock currentBlock, BTreeFile
 {
   BTreeFile::BlockNumber rootNum = _file.getRoot();
 
-
-
   BTreeFile::BlockNumber newRightBlockNum;
   BTreeBlock newRightBlock;
 
   BTreeFile::BlockNumber newParentNum;
   BTreeBlock newParent;
 
-
-
-
-  //Case | root only block in tree
+  //@case-2
   if ((currentBlockNumber == rootNum) && currentBlock.splitNeeded())
   {
-
     unsigned midIndex = (currentBlock.getNumberOfKeys() - 1) / 2;
     string midKey = currentBlock.getKey(midIndex);
     string midValue = currentBlock.getValue(midIndex);
@@ -114,6 +131,24 @@ void BTree::insertR(string key, string value, BTreeBlock currentBlock, BTreeFile
   {
     cout << endl;
     //perform a regular split
+
+    unsigned midIndex = (currentBlock.getNumberOfKeys() - 1) / 2;
+    string midKey = currentBlock.getKey(midIndex);
+    string midValue = currentBlock.getValue(midIndex);
+
+    currentBlock.split(midKey, midValue, newRightBlock);
+
+    newRightBlockNum = _file.allocateBlock();
+
+    _file.putBlock(currentBlockNumber, currentBlock);
+    _file.putBlock(newRightBlockNum, newRightBlock);
+
+
+    newParentNum = BTree::getParent(currentBlockNumber, key);
+
+    _file.getBlock(newParentNum, newParent);
+
+    BTree::insertR(key, value, newParent, newParentNum, 0, newRightBlockNum);
   }
 
   //Case | No split needed
@@ -139,13 +174,12 @@ void BTree::insertR(string key, string value, BTreeBlock currentBlock, BTreeFile
     else
     {
       //just insert
-      currentBlock.insert(currentBlock.getPosition(key), key, value, 0);
-      currentBlock.setChild(currentBlock.getPosition(key), 0);
+      currentBlock.insert(currentBlock.getPosition(key), key, value, rightChildBlockNumber);
 
       if (currentBlock.splitNeeded())
       {
         cout << "insert" << endl;
-        BTree::insertR(key, value, currentBlock, currentBlockNumber, 0, 0);
+        BTree::insertR(key, value, currentBlock, currentBlockNumber, 0, rightChildBlockNumber);
       }
       else
       {
@@ -156,7 +190,7 @@ void BTree::insertR(string key, string value, BTreeBlock currentBlock, BTreeFile
 }
 
 
-BTreeFile::BlockNumber BTree::getParent(BTreeFile::BlockNumber child, string key)
+BTreeFile::BlockNumber BTree::getParent(BTreeFile::BlockNumber child, string key) const
 {
   BTreeFile::BlockNumber rootNum = _file.getRoot();
 
@@ -171,8 +205,16 @@ BTreeFile::BlockNumber BTree::getParent(BTreeFile::BlockNumber child, string key
   peackBlockNum = currentBlock.getChild(currentBlock.getPosition(key));
   _file.getBlock(peackBlockNum, peackBlock);
 
+  if (peackBlockNum == child)
+  {
+    return currentBlockNum;
+  }
+
   while (peackBlockNum != child)
   {
+    cout << "child:" << child << endl;
+    cout << "Peackblock:" << peackBlockNum << endl;
+
     currentBlockNum = currentBlock.getChild(currentBlock.getPosition(key));
     _file.getBlock(currentBlockNum, currentBlock);
 
@@ -188,7 +230,6 @@ BTreeFile::BlockNumber BTree::getParent(BTreeFile::BlockNumber child, string key
       return 0;
     }
   }
-  return 0;
 }
 
 
@@ -257,6 +298,14 @@ bool BTree::rlookup(string key, BTreeFile::BlockNumber root, string& value) cons
       cout << "IF|key == currentKey" << endl;
     }
     value = block.getValue(currentPos);
+
+    BTreeFile::BlockNumber something;
+
+
+
+    something = BTree::getParent(root, key);
+
+    cout << "Parent" << something << endl;
     return true;
   }
   else if ((currentPos <= numberOfKeys) && !block.isLeaf())
