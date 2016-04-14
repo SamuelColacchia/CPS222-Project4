@@ -42,7 +42,6 @@ void BTree::insert(string key, string value)
   BTreeFile::BlockNumber currentBlockNum;
   BTreeBlock currentBlock;
 
-
   if (rootNum == 0)
   {
     rootNum = _file.allocateBlock();
@@ -55,6 +54,11 @@ void BTree::insert(string key, string value)
   {
     currentBlockNum = rootNum;
     _file.getBlock(currentBlockNum, currentBlock);
+
+    if (currentBlock.isLeaf())
+    {
+      BTree::insertR(key, value, currentBlock, currentBlockNum, 0, 0);
+    }
 
     while (!currentBlock.isLeaf())
     {
@@ -69,30 +73,85 @@ void BTree::insert(string key, string value)
 }
 
 
-void BTree::insertR(string key, string value, BTreeBlock currentBlock, BTreeFile::BlockNumber currentBlockNumber, BTreeFile::BlockNumber parentBlockNumber, BTreeFile::BlockNumber leftChildBlockNumber)
+void BTree::insertR(string key, string value, BTreeBlock currentBlock, BTreeFile::BlockNumber currentBlockNumber, BTreeFile::BlockNumber leftChildBlockNumber, BTreeFile::BlockNumber rightChildBlockNumber)
 {
   BTreeFile::BlockNumber rootNum = _file.getRoot();
-  BTreeBlock newBlock;
+
+
+
+  BTreeFile::BlockNumber newRightBlockNum;
+  BTreeBlock newRightBlock;
+
+  BTreeFile::BlockNumber newParentNum;
   BTreeBlock newParent;
 
+
+
+
+  //Case | root only block in tree
   if ((currentBlockNumber == rootNum) && currentBlock.splitNeeded())
   {
+
     unsigned midIndex = (currentBlock.getNumberOfKeys() - 1) / 2;
     string midKey = currentBlock.getKey(midIndex);
     string midValue = currentBlock.getValue(midIndex);
 
-    // currentBlock.split()
+    currentBlock.split(midKey, midValue, newRightBlock);
+
+    newRightBlockNum = _file.allocateBlock();
+    newParentNum = _file.allocateBlock();
+
+    _file.setRoot(newParentNum);
+
+    _file.putBlock(currentBlockNumber, currentBlock);
+    _file.putBlock(newRightBlockNum, newRightBlock);
+
+    BTree::insertR(key, value, newParent, newParentNum, currentBlockNumber, newRightBlockNum);
   }
+
+  //Case | Not root
   else if ((currentBlockNumber != rootNum) && currentBlock.splitNeeded())
   {
+    cout << endl;
     //perform a regular split
   }
+
+  //Case | No split needed
   else
   {
-    //just insert
-    currentBlock.insert(currentBlock.getPosition(key), key, value, 0);
-    currentBlock.setChild(currentBlock.getPosition(key), 0);
-    _file.putBlock(rootNum, currentBlock);
+    if (leftChildBlockNumber != 0)
+    {
+      cout << "rightChildBlockNumber:" << rightChildBlockNumber << endl;
+      cout << "rightChildBlockNumber:" << leftChildBlockNumber << endl;
+      currentBlock.insert(currentBlock.getPosition(key), key, value, rightChildBlockNumber);
+      currentBlock.setChild(currentBlock.getPosition(key), leftChildBlockNumber);
+
+      cout << "currentBlock.splitNeeded():" << currentBlock.splitNeeded() << endl;
+      if (currentBlock.splitNeeded())
+      {
+        BTree::insertR(key, value, currentBlock, currentBlockNumber, 0, 0);
+      }
+      else
+      {
+        _file.putBlock(currentBlockNumber, currentBlock);
+      }
+    }
+    else
+    {
+      //just insert
+      currentBlock.insert(currentBlock.getPosition(key), key, value, 0);
+      currentBlock.setChild(currentBlock.getPosition(key), 0);
+
+      if (currentBlock.splitNeeded())
+      {
+        cout << "insert" << endl;
+        BTree::insertR(key, value, currentBlock, currentBlockNumber, 0, 0);
+      }
+      else
+      {
+        _file.putBlock(currentBlockNumber, currentBlock);
+      }
+    }
   }
 }
 
@@ -123,6 +182,10 @@ BTreeFile::BlockNumber BTree::getParent(BTreeFile::BlockNumber child, string key
     if (peackBlockNum == child)
     {
       return currentBlockNum;
+    }
+    else if (child == rootNum)
+    {
+      return 0;
     }
   }
   return 0;

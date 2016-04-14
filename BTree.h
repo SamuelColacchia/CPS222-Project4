@@ -30,7 +30,7 @@ class BTree
     // embedded spaces or control characters.
     void insert(string key, string value);
 
-    void insertR(string key, string value, BTreeBlock currentBlock, BTreeFile::BlockNumber currentBlockNumber, BTreeFile::BlockNumber parentBlockNumber,BTreeFile::BlockNumber leftChildBlockNumber);
+    void insertR(string key, string value, BTreeBlock currentBlock, BTreeFile::BlockNumber currentBlockNumber, BTreeFile::BlockNumber leftChildBlockNumber, BTreeFile::BlockNumber rightChildBlockNumber);
 
     BTreeFile::BlockNumber getParent(BTreeFile::BlockNumber child, string key);
 
