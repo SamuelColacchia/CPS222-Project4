@@ -32,7 +32,7 @@ class BTree
 
     void insertR(string key, string value, BTreeBlock currentBlock, BTreeFile::BlockNumber currentBlockNumber, BTreeFile::BlockNumber leftChildBlockNumber, BTreeFile::BlockNumber rightChildBlockNumber);
 
-    BTreeFile::BlockNumber getParent(BTreeFile::BlockNumber child, string key);
+    BTreeFile::BlockNumber getParent(BTreeFile::BlockNumber child, string key) const;
 
     // Lookup a key.  If found, set value to associated value and
     // return true, else leave value unchanged and return false
