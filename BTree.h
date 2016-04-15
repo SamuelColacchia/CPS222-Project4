@@ -30,13 +30,24 @@ class BTree
     // embedded spaces or control characters.
     void insert(string key, string value);
 
+    void insertR(string key, string value, BTreeBlock currentBlock, BTreeFile::BlockNumber currentBlockNumber, BTreeFile::BlockNumber leftChildBlockNumber, BTreeFile::BlockNumber rightChildBlockNumber);
+
+    BTreeFile::BlockNumber getParent(BTreeFile::BlockNumber child, string key) const;
+
+    bool hasChildren(BTreeFile::BlockNumber currentBlockNumber, BTreeBlock currentBlock) const;
+    unsigned countDirectChildren(BTreeFile::BlockNumber currentBlockNumber, BTreeBlock currentBlock) const;
+
     // Lookup a key.  If found, set value to associated value and
     // return true, else leave value unchanged and return false
     bool lookup(string key, string & value) const;
 
+    bool rlookup(string key,BTreeFile::BlockNumber blockNumber,string value) const;
+
     // Remove a key and its associated value.  Return true if
     // found and removed, false if not.
     bool remove(string key);
+
+    bool removeR(string key, BTreeFile::BlockNumber currentBlockNum, BTreeBlock currentBlock, BTreeFile::BlockNumber parentBlockNum, BTreeBlock parentBlock, BTreeFile::BlockNumber neighborBlockNum, BTreeBlock neighborBlock);
 
     // Print the contents of the entire tree to cout for testing/debugging
     // purposes.
