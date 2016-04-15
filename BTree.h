@@ -35,6 +35,7 @@ class BTree
     BTreeFile::BlockNumber getParent(BTreeFile::BlockNumber child, string key) const;
 
     bool hasChildren(BTreeFile::BlockNumber currentBlockNumber, BTreeBlock currentBlock) const;
+    unsigned countDirectChildren(BTreeFile::BlockNumber currentBlockNumber, BTreeBlock currentBlock) const;
 
     // Lookup a key.  If found, set value to associated value and
     // return true, else leave value unchanged and return false
@@ -46,7 +47,7 @@ class BTree
     // found and removed, false if not.
     bool remove(string key);
 
-    bool removeR(string key);
+    bool removeR(string key, BTreeFile::BlockNumber currentBlockNum, BTreeBlock currentBlock, BTreeFile::BlockNumber parentBlockNum, BTreeBlock parentBlock, BTreeFile::BlockNumber neighborBlockNum, BTreeBlock neighborBlock);
 
     // Print the contents of the entire tree to cout for testing/debugging
     // purposes.
