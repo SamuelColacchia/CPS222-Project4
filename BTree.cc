@@ -13,8 +13,10 @@
  */
 #include <stack>
 #include <iostream>
+
 using std::cout;
 using std::stack;
+
 
 #include "BTree.h"
 #include "BTreeFile.h"
@@ -105,7 +107,15 @@ void BTree::insert(string key, string value)
     //@transition-1
     if (currentBlock.isLeaf())
     {
-      BTree::insertR(key, value, currentBlock, currentBlockNum, 0, 0);
+      if (currentBlock.getKey(currentBlock.getPosition(key)) == key)
+      {
+        cout << "Duplicate key:" << key << endl;
+        cout << "Insert canceled" << endl;
+      }
+      else
+      {
+        BTree::insertR(key, value, currentBlock, currentBlockNum, 0, 0);
+      }
     }
 
     while (!currentBlock.isLeaf())
@@ -114,7 +124,15 @@ void BTree::insert(string key, string value)
       _file.getBlock(currentBlockNum, currentBlock);
       if (currentBlock.isLeaf())
       {
-        BTree::insertR(key, value, currentBlock, currentBlockNum, 0, 0);
+        if (currentBlock.getKey(currentBlock.getPosition(key)) == key)
+        {
+          cout << "Duplicate key:" << key << endl;
+          cout << "Insert canceled" << endl;
+        }
+        else
+        {
+          BTree::insertR(key, value, currentBlock, currentBlockNum, 0, 0);
+        }
       }
     }
   }
@@ -255,9 +273,6 @@ BTreeFile::BlockNumber BTree::getParent(BTreeFile::BlockNumber child, string key
 
   while (peackBlockNum != child)
   {
-    cout << "child:" << child << endl;
-    cout << "Peackblock:" << peackBlockNum << endl;
-
     currentBlockNum = currentBlock.getChild(currentBlock.getPosition(key));
     _file.getBlock(currentBlockNum, currentBlock);
 
@@ -273,6 +288,25 @@ BTreeFile::BlockNumber BTree::getParent(BTreeFile::BlockNumber child, string key
       return 0;
     }
   }
+}
+
+
+unsigned BTree::countDirectChildren(BTreeFile::BlockNumber currentBlockNumber, BTreeBlock currentBlock) const
+{
+  unsigned numberOfKeys = currentBlock.getNumberOfKeys();
+  unsigned numberOfPossibleChildren = numberOfKeys + 1;
+  unsigned numberOfVerifiedChildren;
+  BTreeFile::BlockNumber childnum;
+
+  for (int i = 0; i < numberOfPossibleChildren; i++)
+  {
+    childnum = currentBlock.getChild(i);
+    if (childnum != 0)
+    {
+      numberOfVerifiedChildren++;
+    }
+  }
+  return numberOfVerifiedChildren;
 }
 
 
@@ -292,6 +326,8 @@ bool BTree::hasChildren(BTreeFile::BlockNumber currentBlockNumber, BTreeBlock cu
   return false;
 }
 
+
+//TODO redo comment based on code changes
 
 /**
  * @param string key | the key of the item to find
@@ -391,9 +427,15 @@ bool BTree::remove(string key)
   BTreeFile::BlockNumber currentBlockNum = rootNum;
   BTreeBlock currentBlock;
 
+  BTreeFile::BlockNumber parentBlockNum;
+  BTreeBlock parentBlock;
+
+  BTreeFile::BlockNumber neighborBlockNum;
+  BTreeBlock neighborBlock;
+
+
   _file.getBlock(currentBlockNum, currentBlock);
-  cout << endl;
-  cout << "lookup return:" << BTree::lookup(key, value) << endl;
+
   if (!BTree::lookup(key, value))
   {
     return false;
@@ -405,15 +447,151 @@ bool BTree::remove(string key)
     _file.getBlock(currentBlockNum, currentBlock);
   }
 
-  // if (currentBlock.getKey(currentBlock.getPosition(key)) == key)
-  // {
-  //   BTree::removeR(string key)
-  // }
+  return BTree::removeR(key, currentBlockNum, currentBlock, parentBlockNum, parentBlock, neighborBlockNum, neighborBlock);
 }
 
 
-bool BTree::removeR(string key)
+bool BTree::removeR(string key, BTreeFile::BlockNumber currentBlockNum, BTreeBlock currentBlock, BTreeFile::BlockNumber parentBlockNum, BTreeBlock parentBlock, BTreeFile::BlockNumber neighborBlockNum, BTreeBlock neighborBlock)
 {
+  unsigned numberOfKeys = currentBlock.getNumberOfKeys();
+  unsigned numberOfChildren = BTree::countDirectChildren(currentBlockNum, currentBlock);
+
+  cout << "numberofchildren: " << numberOfChildren << endl;
+  if ((numberOfKeys > 1) && (numberOfKeys + 1 >= numberOfChildren))
+  {
+    currentBlock.remove(currentBlock.getPosition(key));
+    _file.putBlock(currentBlockNum, currentBlock);
+    return true;
+  }
+  //delete block cases
+  else
+  {
+    parentBlockNum = BTree::getParent(currentBlockNum, key);
+    _file.getBlock(parentBlockNum, parentBlock);
+
+    int currentBlockParentPos = parentBlock.getPosition(key);
+
+    neighborBlockNum = parentBlock.getChild(currentBlockParentPos - 1);
+
+    _file.getBlock(neighborBlockNum, neighborBlock);
+
+    cout << "numberof keys" << neighborBlock.getNumberOfKeys() << endl;
+
+    if (neighborBlock.getNumberOfKeys() > 1)
+    {
+      currentBlock.remove(currentBlock.getPosition(key));
+
+      currentBlock.insert(currentBlock.getPosition(parentBlock.getKey(parentBlock.getPosition(key))), parentBlock.getKey(parentBlock.getPosition(key)), parentBlock.getValue(parentBlock.getPosition(key)),0);
+
+      _file.putBlock(currentBlockNum,currentBlock);
+
+      parentBlock.remove(parentBlock.getPosition(key));
+
+      parentBlock.insert(parentBlock.getPosition(neighborBlock.getKey(neighborBlock.getPosition(key)-1)),neighborBlock.getKey(neighborBlock.getPosition(key)-1), neighborBlock.getValue(neighborBlock.getPosition(key)-1), currentBlockNum);
+
+      _file.putBlock(parentBlockNum, parentBlock);
+
+      neighborBlock.remove(neighborBlock.getPosition(key)-1);
+
+      _file.putBlock(neighborBlockNum,neighborBlock);
+    }
+
+    // if (neighborBlockParentPos > 0)
+    // {
+    //   neighborBlockParentPos--;
+    // }
+    // else
+    // {
+    //   neighborBlockParentPos++;
+    // }
+    //
+    // if (currentBlockParentPos > neighborBlockParentPos)
+  }
+
+
+
+  // currentBlock.remove(currentBlock.getPosition(key));
+  // _file.putBlock(currentBlockNum, currentBlock);
+  // if (currentBlock.getNumberOfKeys() == 1)
+  // {
+  //   cout << "block removed" << endl;
+  //
+  //   parentBlockNum = BTree::getParent(currentBlockNum, key);
+  //   _file.getBlock(parentBlockNum, parentBlock);
+  //
+  //   int neighborPosition = parentBlock.getPosition(key);
+  //
+  //
+  //   if (neighborPosition > 0)
+  //   {
+  //     neighborPosition--;
+  //   }
+  //   else
+  //   {
+  //     neighborPosition++;
+  //   }
+  //
+  //   neighborBlockNum = parentBlock.getChild(neighborPosition);
+  //   _file.getBlock(neighborBlockNum, neighborBlock);
+  //
+  //   unsigned currentBlockNumChildren = BTree::countDirectChildren(currentBlockNum, currentBlock);
+  //   unsigned neighborBlockNumChildren = BTree::countDirectChildren(neighborBlockNum, neighborBlock);
+  //
+  //   cout << "currentblock:" << currentBlockNum << endl;
+  //   cout << "neighblock:" << neighborBlockNum << endl;
+  //
+  //   if(neighborBlock.getNumberOfKeys() + 1 >= neighborBlockNumChildren)
+  //   {
+  //
+  //   }
+
+  // if (currentBlock.getNumberOfKeys() + 1 >= currentBlockNumChildren && neighborBlock.getNumberOfKeys() + 1 >= neighborBlockNumChildren)
+  // {
+  //   cout << "combine" << endl;
+  //   for (int i = 0; i < neighborBlock.getNumberOfKeys() - 1;i++)
+  //   {
+  //     currentBlock.setKey(currentBlock.getPosition(neighborBlock.getKey(i)),neighborBlock.getKey(i));
+  //     neighborBlock.setKey(i,0);
+  //
+  //     currentBlock.setValue(currentBlock.getPosition(neighborBlock.getKey(i)),neighborBlock.getValue(i));
+  //     neighborBlock.setValue(i,0);
+  //   }
+  //   neighborBlock.setNumberOfKeys(0);
+  //
+  //   currentBlock.setKey(parentBlock.getPosition(key), parentBlock.getKey(parentBlock.getPosition(key)));
+  //   currentBlock.setValue(parentBlock.getPosition(key), parentBlock.getValue(parentBlock.getPosition(key)));
+  //   _file.putBlock(neighborBlockNum,neighborBlock);
+  //   _file.putBlock(currentBlockNum,currentBlock);
+  // }
+  // else
+  // {
+  //
+  // }
+  //
+  // parentBlock.setChild(currentBlock.getPosition(key), 0);
+  // _file.putBlock(parentBlockNum, parentBlock);
+  //
+  // _file.deallocateBlock(currentBlockNum);
+  //}
+  //   return true;
+  // }
+  // else if (numberOfChildren == 1)
+  // {
+  // }
+  // else if (numberOfChildren >= 2)
+  // {
+  // }
+  // else
+  // {
+  //   return false;
+  // }
+  return false;
+
+  //base case delete node with no child
+
+  //case delete node with one child
+
+  //case delete node with two children
 }
 
 

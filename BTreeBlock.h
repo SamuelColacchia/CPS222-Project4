@@ -74,6 +74,8 @@ class BTreeBlock
     // to insert. Child will go to the right of key and value
     void insert(int position, string key, string value, BTreeFile::BlockNumber child);
 
+    void remove(int position);
+
     // Test to see whether this block needs to be split following an insert.
     // A split will be needed if the block now contains too many keys.
     bool splitNeeded() const;
