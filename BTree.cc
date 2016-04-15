@@ -341,7 +341,7 @@ bool BTree::remove(string key)
         _file.getBlock(currentBlockNum, currentBlock);
 
         //intrsting problem, getting to the value if not a leaf
-        while (currentBlock.getKey(currentBlock.getPosition(key)))
+        while (currentBlock.getKey(currentBlock.getPosition(key) == currentBlock.getChild()))
         {
                 currentBlockNum = currentBlock.getChild(currentBlock.getPosition(key));
                 _file.getBlock(currentBlockNum, currentBlock);
