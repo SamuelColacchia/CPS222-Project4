@@ -22,7 +22,7 @@ using std::stack;
 
 
 //TODO add comments
-bool debug = true;
+bool debug = false;
 
 BTree::BTree(string name)
   : _file(*new BTreeFile(name))
@@ -191,12 +191,9 @@ void BTree::insertR(string key, string value, BTreeBlock currentBlock, BTreeFile
     // @case-4-subcase-1
     if (leftChildBlockNumber != 0)
     {
-      cout << "rightChildBlockNumber:" << rightChildBlockNumber << endl;
-      cout << "rightChildBlockNumber:" << leftChildBlockNumber << endl;
       currentBlock.insert(currentBlock.getPosition(key), key, value, rightChildBlockNumber);
       currentBlock.setChild(currentBlock.getPosition(key), leftChildBlockNumber);
 
-      cout << "currentBlock.splitNeeded():" << currentBlock.splitNeeded() << endl;
       if (currentBlock.splitNeeded())
       {
         BTree::insertR(key, value, currentBlock, currentBlockNumber, 0, 0);
@@ -209,12 +206,10 @@ void BTree::insertR(string key, string value, BTreeBlock currentBlock, BTreeFile
     // @case-4-subcase-2
     else
     {
-      //just insert
       currentBlock.insert(currentBlock.getPosition(key), key, value, rightChildBlockNumber);
 
       if (currentBlock.splitNeeded())
       {
-        cout << "insert" << endl;
         BTree::insertR(key, value, currentBlock, currentBlockNumber, 0, rightChildBlockNumber);
       }
       else
@@ -280,9 +275,11 @@ BTreeFile::BlockNumber BTree::getParent(BTreeFile::BlockNumber child, string key
   }
 }
 
+
 bool BTree::hasChildren(BTreeFile::BlockNumber currentBlockNumber, BTreeBlock currentBlock) const
 {
   unsigned currentKeys = currentBlock.getNumberOfKeys();
+
   cout << "currentkeys:" << currentKeys << endl;
   for (int i = 0; i < currentKeys; i++)
   {
@@ -294,6 +291,7 @@ bool BTree::hasChildren(BTreeFile::BlockNumber currentBlockNumber, BTreeBlock cu
   }
   return false;
 }
+
 
 /**
  * @param string key | the key of the item to find
@@ -311,19 +309,40 @@ bool BTree::lookup(string key, string& value) const
 {
   BTreeFile::BlockNumber root = _file.getRoot();
 
+  BTreeBlock currentBlock;
+  BTreeFile::BlockNumber currentBlockNumber = root;
+
+  string currentKey;
+
+  _file.getBlock(currentBlockNumber, currentBlock);
+
   if (root == 0)
   {
     return false;
   }
   else
   {
-    if (debug)
+    while (!currentBlock.isLeaf())
     {
-      cout << endl;
-      cout << "value " << value << endl;
+      currentKey = currentBlock.getKey(currentBlock.getPosition(key));
+      if (key == currentKey)
+      {
+        value = currentBlock.getValue(currentBlock.getPosition(key));
+        return true;
+      }
+      currentBlockNumber = currentBlock.getChild(currentBlock.getPosition(key));
+      _file.getBlock(currentBlockNumber, currentBlock);
     }
-    value = "";
-    return BTree::rlookup(key, root, value);
+    currentKey = currentBlock.getKey(currentBlock.getPosition(key));
+    if (key == currentKey)
+    {
+      value = currentBlock.getValue(currentBlock.getPosition(key));
+      return true;
+    }
+    else if (currentBlock.isLeaf())
+    {
+      return false;
+    }
   }
 }
 
@@ -335,104 +354,61 @@ bool BTree::lookup(string key, string& value) const
  *
  * @description | Helper function called by lookup
  */
-bool BTree::rlookup(string key, BTreeFile::BlockNumber root, string& value) const
+bool BTree::rlookup(string key, BTreeFile::BlockNumber currentBlockNumber, string value) const
 {
-  BTreeBlock block;
-  BTreeFile::BlockNumber child;
+  BTreeBlock currentBlock;
 
-  //Get block
-  _file.getBlock(root, block);
+  _file.getBlock(currentBlockNumber, currentBlock);
 
-  unsigned numberOfKeys = block.getNumberOfKeys();
+  string currentKey = currentBlock.getKey(currentBlock.getPosition(key));
 
-  //Determine index
-  unsigned index = numberOfKeys - 1;
-
-  //Total number of children count start at 0
-  unsigned numberOfChildren = index - 1;
-
-  //Current pos
-  unsigned currentPos = block.getPosition(key);
-
-  string currentKey = block.getKey(currentPos);
-
-  if (debug)
-  {
-    cout << endl;
-
-    cout << "Position " << block.getPosition(key) << endl;
-    cout << "number of keys" << block.getNumberOfKeys() << endl;
-    cout << "index " << index << endl;
-
-    cout << "Get child 1 " << block.getChild(0) << endl;
-    cout << "Get child 2 " << block.getChild(1) << endl;
-    cout << "block number" << root << endl;
-    cout << "key " << key << endl;
-  }
-
+  cout << "currentKey:" << currentKey << endl;
+  cout << "currentPos:" << currentBlock.getPosition(key) << endl;
   if (key == currentKey)
   {
-    if (debug)
-    {
-      cout << "IF|key == currentKey" << endl;
-    }
-    value = block.getValue(currentPos);
-
-    BTreeFile::BlockNumber something;
-
-
-
-    something = BTree::getParent(root, key);
-
-    cout << "Parent" << something << endl;
+    value = currentBlock.getValue(currentBlock.getPosition(key));
+    cout << "return true" << endl;
+    cout << "value" << value << endl;
     return true;
   }
-  else if ((currentPos <= numberOfKeys) && !block.isLeaf())
+  else if (currentBlock.isLeaf())
   {
-    if (debug)
-    {
-      cout << "ELSE IF|currentPos <= numberOfKeys" << endl;
-    }
-    BTree::rlookup(key, block.getChild(currentPos), value);
+    cout << "return false" << endl;
+    return false;
   }
   else
   {
-    if (debug)
-    {
-      cout << "ELSE" << endl;
-    }
-    return false;
+    BTree::rlookup(key, currentBlock.getChild(currentBlock.getPosition(key)), value);
   }
 }
 
 
 bool BTree::remove(string key)
 {
+  string value;
   BTreeFile::BlockNumber rootNum = _file.getRoot();
 
   BTreeFile::BlockNumber currentBlockNum = rootNum;
   BTreeBlock currentBlock;
 
   _file.getBlock(currentBlockNum, currentBlock);
-
-
+  cout << endl;
+  cout << "lookup return:" << BTree::lookup(key, value) << endl;
+  if (!BTree::lookup(key, value))
+  {
+    return false;
+  }
 
   while (!currentBlock.isLeaf() && currentBlock.getKey(currentBlock.getPosition(key)) != key)
   {
-    cout << "currentblock key" << currentBlock.getKey(currentBlock.getPosition(key)) << endl;
     currentBlockNum = currentBlock.getChild(currentBlock.getPosition(key));
     _file.getBlock(currentBlockNum, currentBlock);
-
-    if (currentBlock.getKey(currentBlock.getPosition(key)) == key)
-    {
-        cout << "has child:" << BTree::hasChildren(currentBlockNum, currentBlock) << endl;
-    }
   }
 
-  if (currentBlock.getKey(currentBlock.getPosition(key)) == key)
-  {
-      cout << "has child:" << BTree::hasChildren(currentBlockNum, currentBlock) << endl;
-  }
+  // if (currentBlock.getKey(currentBlock.getPosition(key)) == key)
+  // {
+  //   BTree::removeR(string key)
+  // }
 }
 
 
