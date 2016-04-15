@@ -33,8 +33,8 @@ BTree::BTree(string name)
 #ifndef PROFESSOR_VERSION
 
 /**
- * @param key | the key for the inserted item.
- * @param value | the value for the inserted item.
+ * @param string key | the key for the inserted item.
+ * @param string value | the value for the inserted item.
  *
  * @description | This functions works by checking for a number of cases.
  *
@@ -120,6 +120,17 @@ void BTree::insert(string key, string value)
   }
 }
 
+/**
+* @param string key | the key for the inserted item.
+* @param string value | the value for the inserted item.
+* @param BTreeBlock currentBlock | the current block in memory
+* @param BTreeFile::BlockNumber currentBlockNumber | the current block number
+* @param BTreeFile::BlockNumber leftChildBlockNumber | the left child number
+* @param BTreeFile::BlockNumber rightChildBlockNumber | the right child number
+*
+* @description | Helper function called by insert
+*
+*/
 
 void BTree::insertR(string key, string value, BTreeBlock currentBlock, BTreeFile::BlockNumber currentBlockNumber, BTreeFile::BlockNumber leftChildBlockNumber, BTreeFile::BlockNumber rightChildBlockNumber)
 {
@@ -214,6 +225,19 @@ void BTree::insertR(string key, string value, BTreeBlock currentBlock, BTreeFile
   }
 }
 
+
+/**
+* @param BTreeFile::BlockNumber child | the child block we want the parent for
+* @param string key | the key of the child block
+*
+* @return BTreeFile::BlockNumber | the parent of the child specefied or 0 if unable to find parent
+*
+* @description | Function to get the parent of a given block. Works by creating to pointers one at the
+* current block then one head, we then compare the current pointer and then the peack pointer
+* if the equal we return that block if not then we repeat the process till we reach the block that
+* called us, if we dont find it then we turn 0.
+*
+*/
 
 BTreeFile::BlockNumber BTree::getParent(BTreeFile::BlockNumber child, string key) const
 {
