@@ -496,6 +496,7 @@ bool BTree::removeR(string key, BTreeFile::BlockNumber currentBlockNum, BTreeBlo
       _file.putBlock(neighborBlockNum,neighborBlock);
     }
 
+
     // if (neighborBlockParentPos > 0)
     // {
     //   neighborBlockParentPos--;
