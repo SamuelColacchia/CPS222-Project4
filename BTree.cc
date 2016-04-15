@@ -282,7 +282,19 @@ BTreeFile::BlockNumber BTree::getParent(BTreeFile::BlockNumber child, string key
 }
 
 
-//TODO Add comments
+/**
+* @param string key | the key of the item to find
+* @param string& value | the value we set if we find the key
+*
+* @description | Given a key look thourgh the tree and find the item.
+* If root = 0 then we return false because the tree is empty.
+* Then call the recursive lookup function, passing it the key,
+* root and value. If the key == the current key then we return true and
+* set value = to the blocks current vlaue at the currentPos. If not and
+* the currentblock is not a leaf then we call Rlookup with the root being changed.
+*
+*/
+
 bool BTree::lookup(string key, string& value) const
 {
   BTreeFile::BlockNumber root = _file.getRoot();
@@ -303,8 +315,14 @@ bool BTree::lookup(string key, string& value) const
   }
 }
 
+/**
+* @param string key | the key of the item to find
+* @param BTreeFile::BlockNumber root | the current root
+* @param string& value | the value we set if we find the key
+*
+* @description | Helper function called by lookup
+*/
 
-//TODO add comments
 bool BTree::rlookup(string key, BTreeFile::BlockNumber root, string& value) const
 {
   BTreeBlock block;
