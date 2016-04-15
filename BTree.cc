@@ -46,10 +46,35 @@ BTree::BTree(string name)
  * @transition-1-description | Get to the leaf of the tree, by transitioning down
  * using the key to find the appropriate value
  *
- * @case-2 | root only block in tree
- * @case-2-description |
+ * @case-2 | root block and split needed
+ * @case-2-description | Start by splitting the currentblock then creating two slots
+ * on the disk, we then set the root to the block that we will use as the new parent,
+ * then save the rightchildblock and currentblock (leftchildblock) to disk. We call the recursive
+ * function, passing the new parent block number and block as the current block.
  *
+ * @case-3 | not root block and split needed
+ * @case-3-description | Start by splitting the currentblock then create one slot on the disk,
+ * then save the rightchildblock and currentblock (leftchildblock) to disk, we then get the parent
+ * of the current block, we call the recursive function, passing the parent we found
+ * and the making sure to set leftchildnum to 0
  *
+ * @case-4 | no split needed insert
+ * @case-4-description | At this point we attempt to insert but before we can we must check for a number
+ * of things
+ *
+ * @case-4-subcase-1 | case when we need a new root
+ * @case-4-subcase-1-description | This case happens when leftchildblocknumber is not 0, this only occures
+ * when we have set the currentblocknum as the new parent (a new root was made). This value is the left child
+ * recorded here so we dont lose it when we create a new root. After we insert we set the left child
+ * (insert takes care of the right) and then check to ensure that the block does not need to be split, (though
+ * this case would be almost if not completely impossible, since to get here we had to create a new root, but
+ * just to be safe).
+ *
+ * @case-4-subcase-2 | simple insert
+ * @case-4-subcase-2-description | This is the base case, if everything is fine then we insert the desired
+ * key and value inthe current block. Then we check to ensure that no split is needed, if a split is needed
+ * we call the recursive function again with the propervalues and the process repeats. If a split is not needed then
+ * we save the block back to disk.
  *
  */
 void BTree::insert(string key, string value)
@@ -106,9 +131,10 @@ void BTree::insertR(string key, string value, BTreeBlock currentBlock, BTreeFile
   BTreeFile::BlockNumber newParentNum;
   BTreeBlock newParent;
 
-  //@case-2
+  // @case-2
   if ((currentBlockNumber == rootNum) && currentBlock.splitNeeded())
   {
+    //Get the middle value and key and set them to variables
     unsigned midIndex = (currentBlock.getNumberOfKeys() - 1) / 2;
     string midKey = currentBlock.getKey(midIndex);
     string midValue = currentBlock.getValue(midIndex);
@@ -126,12 +152,10 @@ void BTree::insertR(string key, string value, BTreeBlock currentBlock, BTreeFile
     BTree::insertR(key, value, newParent, newParentNum, currentBlockNumber, newRightBlockNum);
   }
 
-  //Case | Not root
+  // @case-3
   else if ((currentBlockNumber != rootNum) && currentBlock.splitNeeded())
   {
-    cout << endl;
-    //perform a regular split
-
+    //Get the middle value and key and set them to variables
     unsigned midIndex = (currentBlock.getNumberOfKeys() - 1) / 2;
     string midKey = currentBlock.getKey(midIndex);
     string midValue = currentBlock.getValue(midIndex);
@@ -143,7 +167,6 @@ void BTree::insertR(string key, string value, BTreeBlock currentBlock, BTreeFile
     _file.putBlock(currentBlockNumber, currentBlock);
     _file.putBlock(newRightBlockNum, newRightBlock);
 
-
     newParentNum = BTree::getParent(currentBlockNumber, key);
 
     _file.getBlock(newParentNum, newParent);
@@ -151,9 +174,10 @@ void BTree::insertR(string key, string value, BTreeBlock currentBlock, BTreeFile
     BTree::insertR(key, value, newParent, newParentNum, 0, newRightBlockNum);
   }
 
-  //Case | No split needed
+  // @case-4
   else
   {
+    // @case-4-subcase-1
     if (leftChildBlockNumber != 0)
     {
       cout << "rightChildBlockNumber:" << rightChildBlockNumber << endl;
@@ -171,6 +195,7 @@ void BTree::insertR(string key, string value, BTreeBlock currentBlock, BTreeFile
         _file.putBlock(currentBlockNumber, currentBlock);
       }
     }
+    // @case-4-subcase-2
     else
     {
       //just insert
