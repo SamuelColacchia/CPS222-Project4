@@ -15,7 +15,7 @@ using namespace std;
 
 // DEGREE: maximum number of children a node in the tree can have on disk.
 #ifndef DEGREE
-#define DEGREE 7
+#define DEGREE 3
 #endif
 
 // Incomplete definition of class BTreeBlock is needed here because that class

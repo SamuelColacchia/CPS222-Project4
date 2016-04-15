@@ -120,18 +120,18 @@ void BTree::insert(string key, string value)
   }
 }
 
-/**
-* @param string key | the key for the inserted item.
-* @param string value | the value for the inserted item.
-* @param BTreeBlock currentBlock | the current block in memory
-* @param BTreeFile::BlockNumber currentBlockNumber | the current block number
-* @param BTreeFile::BlockNumber leftChildBlockNumber | the left child number
-* @param BTreeFile::BlockNumber rightChildBlockNumber | the right child number
-*
-* @description | Helper function called by insert
-*
-*/
 
+/**
+ * @param string key | the key for the inserted item.
+ * @param string value | the value for the inserted item.
+ * @param BTreeBlock currentBlock | the current block in memory
+ * @param BTreeFile::BlockNumber currentBlockNumber | the current block number
+ * @param BTreeFile::BlockNumber leftChildBlockNumber | the left child number
+ * @param BTreeFile::BlockNumber rightChildBlockNumber | the right child number
+ *
+ * @description | Helper function called by insert
+ *
+ */
 void BTree::insertR(string key, string value, BTreeBlock currentBlock, BTreeFile::BlockNumber currentBlockNumber, BTreeFile::BlockNumber leftChildBlockNumber, BTreeFile::BlockNumber rightChildBlockNumber)
 {
   BTreeFile::BlockNumber rootNum = _file.getRoot();
@@ -160,7 +160,7 @@ void BTree::insertR(string key, string value, BTreeBlock currentBlock, BTreeFile
     _file.putBlock(currentBlockNumber, currentBlock);
     _file.putBlock(newRightBlockNum, newRightBlock);
 
-    BTree::insertR(key, value, newParent, newParentNum, currentBlockNumber, newRightBlockNum);
+    BTree::insertR(midKey, midValue, newParent, newParentNum, currentBlockNumber, newRightBlockNum);
   }
 
   // @case-3
@@ -182,7 +182,7 @@ void BTree::insertR(string key, string value, BTreeBlock currentBlock, BTreeFile
 
     _file.getBlock(newParentNum, newParent);
 
-    BTree::insertR(key, value, newParent, newParentNum, 0, newRightBlockNum);
+    BTree::insertR(midKey, midValue, newParent, newParentNum, 0, newRightBlockNum);
   }
 
   // @case-4
@@ -227,18 +227,17 @@ void BTree::insertR(string key, string value, BTreeBlock currentBlock, BTreeFile
 
 
 /**
-* @param BTreeFile::BlockNumber child | the child block we want the parent for
-* @param string key | the key of the child block
-*
-* @return BTreeFile::BlockNumber | the parent of the child specefied or 0 if unable to find parent
-*
-* @description | Function to get the parent of a given block. Works by creating to pointers one at the
-* current block then one head, we then compare the current pointer and then the peack pointer
-* if the equal we return that block if not then we repeat the process till we reach the block that
-* called us, if we dont find it then we turn 0.
-*
-*/
-
+ * @param BTreeFile::BlockNumber child | the child block we want the parent for
+ * @param string key | the key of the child block
+ *
+ * @return BTreeFile::BlockNumber | the parent of the child specefied or 0 if unable to find parent
+ *
+ * @description | Function to get the parent of a given block. Works by creating to pointers one at the
+ * current block then one head, we then compare the current pointer and then the peack pointer
+ * if the equal we return that block if not then we repeat the process till we reach the block that
+ * called us, if we dont find it then we turn 0.
+ *
+ */
 BTreeFile::BlockNumber BTree::getParent(BTreeFile::BlockNumber child, string key) const
 {
   BTreeFile::BlockNumber rootNum = _file.getRoot();
@@ -281,20 +280,33 @@ BTreeFile::BlockNumber BTree::getParent(BTreeFile::BlockNumber child, string key
   }
 }
 
+bool BTree::hasChildren(BTreeFile::BlockNumber currentBlockNumber, BTreeBlock currentBlock) const
+{
+  unsigned currentKeys = currentBlock.getNumberOfKeys();
+  cout << "currentkeys:" << currentKeys << endl;
+  for (int i = 0; i < currentKeys; i++)
+  {
+    cout << "currentblock child" << currentBlock.getChild(i) << endl;
+    if (currentBlock.getChild(i) != 0)
+    {
+      return true;
+    }
+  }
+  return false;
+}
 
 /**
-* @param string key | the key of the item to find
-* @param string& value | the value we set if we find the key
-*
-* @description | Given a key look thourgh the tree and find the item.
-* If root = 0 then we return false because the tree is empty.
-* Then call the recursive lookup function, passing it the key,
-* root and value. If the key == the current key then we return true and
-* set value = to the blocks current vlaue at the currentPos. If not and
-* the currentblock is not a leaf then we call Rlookup with the root being changed.
-*
-*/
-
+ * @param string key | the key of the item to find
+ * @param string& value | the value we set if we find the key
+ *
+ * @description | Given a key look thourgh the tree and find the item.
+ * If root = 0 then we return false because the tree is empty.
+ * Then call the recursive lookup function, passing it the key,
+ * root and value. If the key == the current key then we return true and
+ * set value = to the blocks current vlaue at the currentPos. If not and
+ * the currentblock is not a leaf then we call Rlookup with the root being changed.
+ *
+ */
 bool BTree::lookup(string key, string& value) const
 {
   BTreeFile::BlockNumber root = _file.getRoot();
@@ -315,14 +327,14 @@ bool BTree::lookup(string key, string& value) const
   }
 }
 
-/**
-* @param string key | the key of the item to find
-* @param BTreeFile::BlockNumber root | the current root
-* @param string& value | the value we set if we find the key
-*
-* @description | Helper function called by lookup
-*/
 
+/**
+ * @param string key | the key of the item to find
+ * @param BTreeFile::BlockNumber root | the current root
+ * @param string& value | the value we set if we find the key
+ *
+ * @description | Helper function called by lookup
+ */
 bool BTree::rlookup(string key, BTreeFile::BlockNumber root, string& value) const
 {
   BTreeBlock block;
@@ -396,7 +408,36 @@ bool BTree::rlookup(string key, BTreeFile::BlockNumber root, string& value) cons
 
 bool BTree::remove(string key)
 {
-  return false;       // Student code goes here - remove this line
+  BTreeFile::BlockNumber rootNum = _file.getRoot();
+
+  BTreeFile::BlockNumber currentBlockNum = rootNum;
+  BTreeBlock currentBlock;
+
+  _file.getBlock(currentBlockNum, currentBlock);
+
+
+
+  while (!currentBlock.isLeaf() && currentBlock.getKey(currentBlock.getPosition(key)) != key)
+  {
+    cout << "currentblock key" << currentBlock.getKey(currentBlock.getPosition(key)) << endl;
+    currentBlockNum = currentBlock.getChild(currentBlock.getPosition(key));
+    _file.getBlock(currentBlockNum, currentBlock);
+
+    if (currentBlock.getKey(currentBlock.getPosition(key)) == key)
+    {
+        cout << "has child:" << BTree::hasChildren(currentBlockNum, currentBlock) << endl;
+    }
+  }
+
+  if (currentBlock.getKey(currentBlock.getPosition(key)) == key)
+  {
+      cout << "has child:" << BTree::hasChildren(currentBlockNum, currentBlock) << endl;
+  }
+}
+
+
+bool BTree::removeR(string key)
+{
 }
 
 
